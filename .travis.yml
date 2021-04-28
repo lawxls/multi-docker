@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t lawxls/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true lawxls/react-test npm test
+
+after_success:
+  - docker build -t lawxls/multi-client ./client
+  - docker build -t lawxls/multi-nginx ./nginx
+  - docker build -t lawxls/multi-server ./server
+  - docker build -t lawxls/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push lawxls/multi-client
+  - docker push lawxls/multi-nginx
+  - docker push lawxls/multi-server
+  - docker push lawxls/multi-worker
